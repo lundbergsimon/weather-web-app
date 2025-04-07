@@ -10,11 +10,11 @@ router.post('/auth/register', (req, res) => {
   res.json({ message: 'Registration successful' });
 });
 
-router.get('/auth/logout', (req, res) => {
+router.post('/auth/logout', (req, res) => {
   res.json({ message: 'Logout successful' });
 });
 
-router.get('/auth/refresh', (req, res) => {
+router.post('/auth/refresh', (req, res) => {
   res.json({ message: 'Refresh successful' });
 });
 
