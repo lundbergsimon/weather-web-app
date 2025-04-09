@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/auth/register", (req, res) => {
+router.post("/auth/register", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -17,13 +17,15 @@ router.post("/auth/register", (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    const existingUser = userService.findUserByEmail(email);
+    const existingUser = await userService.findUserByEmail(email);
     if (existingUser) {
-      return res.status(409).json({ message: "User already exists" });
+      return res
+        .status(409)
+        .json({ message: `User with email: '${email}' already exists` });
     }
 
     const hashedPassword = hashPassword(password);
-    userService.createUser(email, hashedPassword);
+    await userService.createUser({ email, hashedPassword });
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
