@@ -1,5 +1,3 @@
-CREATE DATABASE weather_app;
-
 \c weather_app;
 
 CREATE TABLE IF NOT EXISTS users (
