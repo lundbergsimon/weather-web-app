@@ -34,7 +34,7 @@ router.post("/auth/register", async (req, res) => {
   }
 });
 
-router.post("/auth/login", (req, res) => {
+router.post("/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -43,7 +43,7 @@ router.post("/auth/login", (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    existingUser = userService.findUserByEmail(email);
+    const existingUser = await userService.findUserByEmail(email);
     if (!existingUser) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
