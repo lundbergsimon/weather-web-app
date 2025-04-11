@@ -1,4 +1,5 @@
 import express from "express";
+import verifyToken from "../middlewares/verifyToken.js";
 import userService from "../services/user.service.js";
 import {
   generateToken,
@@ -16,6 +17,8 @@ router.post("/auth/register", async (req, res) => {
         .status(400)
         .json({ message: "Email and password are required" });
     }
+
+    const { email, password } = body;
 
     const existingUser = await userService.findUserByEmail(email);
     if (existingUser) {
@@ -42,6 +45,8 @@ router.post("/auth/login", async (req, res) => {
         .status(400)
         .json({ message: "Email and password are required" });
     }
+
+    const { email, password } = body;
 
     const existingUser = await userService.findUserByEmail(email);
     if (!existingUser) {
@@ -74,7 +79,7 @@ router.post("/auth/refresh", (req, res) => {
   res.json({ message: "Refresh successful" });
 });
 
-router.get("/forecast", (req, res) => {
+router.get("/forecast", verifyToken, (req, res) => {
   res.json({ message: "Forecast data" });
 });
 
