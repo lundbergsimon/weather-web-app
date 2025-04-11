@@ -1,7 +1,6 @@
 services:
   db:
     image: postgres:17.4
-    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -14,7 +13,6 @@ services:
 
   backend:
     build: ./backend
-    restart: always
     ports:
       - "8000:8000"
     depends_on:
@@ -25,5 +23,16 @@ services:
     volumes:
       - ./backend:/app
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      API_URL: http://localhost:8000/api/v1
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules # Fixes error
+
 volumes:
   pgdata:
+  node_modules:
