@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 html {
     background-color: #1c1b24;
     color: lightgray;
