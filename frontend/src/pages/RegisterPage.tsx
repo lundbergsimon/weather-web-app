@@ -15,6 +15,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
     alert(formData.password);
   };
 
