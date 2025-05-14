@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:17.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: weather_app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5431:5432" # Expose port 5431 if PostgreSQL is already running on the host
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/weather_app
+      PORT: 8000
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      API_URL: http://localhost:8000/api/v1
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules # Fixes error
+
+volumes:
+  pgdata:
+  node_modules:
