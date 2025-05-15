@@ -1,14 +1,13 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
+import axios from "axios";
 
-dotenv.config();
+const API_URL = import.meta.env.API_URL || "http://localhost:8000/api/v1";
 
-const API_URL = process.env.API_URL || 'http://localhost:8000/api/v1';
+// const API_URL = process.env.API_URL || "http://localhost:8000/api/v1";
 
-export const api = axios.create({
+export const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-})
+    "Content-Type": "application/json",
+    Accept: "application/json"
+  }
+});
