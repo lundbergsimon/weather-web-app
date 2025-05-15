@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { api } from "../config/api";
+import { axiosInstance } from "../config/api";
 import useAuth from "./useAuth";
 import useRefreshAccessToken from "./useRefreshAccessToken";
 
@@ -8,7 +8,7 @@ const useApi = () => {
   const { auth } = useAuth();
 
   useEffect(() => {
-    const requestIntercept = api.interceptors.request.use(
+    const requestIntercept = axiosInstance.interceptors.request.use(
       (config) => {
         if (!config.headers["Authorization"]) {
           config.headers["Authorization"] = `Bearer ${auth?.accessToken}`;
@@ -18,7 +18,7 @@ const useApi = () => {
       (error) => Promise.reject(error)
     );
 
-    const responseIntercept = api.interceptors.response.use(
+    const responseIntercept = axiosInstance.interceptors.response.use(
       (response) => response,
       async (error) => {
         const prevRequest = error?.config;
@@ -26,17 +26,19 @@ const useApi = () => {
           prevRequest.sent = true;
           const newAccessToken = await refreshAccessToken();
           prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return api(prevRequest);
+          return axiosInstance(prevRequest);
         }
         return Promise.reject(error);
       }
     );
 
     return () => {
-      api.interceptors.request.eject(requestIntercept);
-      api.interceptors.response.eject(responseIntercept);
+      axiosInstance.interceptors.request.eject(requestIntercept);
+      axiosInstance.interceptors.response.eject(responseIntercept);
     };
   }, [auth, refreshAccessToken]);
+
+  return axiosInstance;
 };
 
 export default useApi;
