@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { axiosInstance } from "../config/api";
+import useAuth from "../hooks/useAuth";
 import { displayError } from "../utils/helpers";
 
 export default function LoginPage() {
@@ -10,6 +11,7 @@ export default function LoginPage() {
     password: ""
   });
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -21,8 +23,13 @@ export default function LoginPage() {
   };
 
   const sendLoginRequest = async () => {
-    await axiosInstance.post("/auth/login", formData).then(() => {
-      navigate("/");
+    await axiosInstance.post("/auth/login", formData).then((response) => {
+      if (response.data.access_token) {
+        setAuth({
+          accessToken: response.data.access_token
+        });
+        navigate("/");
+      }
     });
   };
 
