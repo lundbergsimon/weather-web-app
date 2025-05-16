@@ -97,7 +97,9 @@ router.get("/forecast", verifyToken, async (req, res) => {
     return res.status(500).json({ message: `Failed to fetch forecast data for lon=${lon}, lat=${lat}` });
   }
   const json = await response.json();
-  const data = json.data.timeSeries.map((item) => ({
+  console.log(json);
+
+  const data = json.timeSeries.map((item) => ({
     datetime: item.validTime,
     temperature: item.parameters.find((param) => param.name === "t"),
     windSpeed: item.parameters.find((param) => param.name === "ws"),
