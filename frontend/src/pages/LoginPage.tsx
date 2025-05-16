@@ -1,21 +1,36 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import { axiosInstance } from "../config/api";
+import { displayError } from "../utils/helpers";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+  const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (!formData.email || !formData.password) {
       alert("Please fill in all fields");
       return;
     }
-
-    alert(formData.password);
+    await loginUser();
   };
+
+  const sendLoginRequest = async () => {
+    await axiosInstance.post("/auth/login", formData).then(() => {
+      navigate("/");
+    });
+  };
+
+  const {
+    mutateAsync: loginUser,
+    isPending,
+    error
+  } = useMutation({ mutationFn: sendLoginRequest });
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -47,9 +62,16 @@ export default function LoginPage() {
             }
           />
         </div>
+        {error && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-red-500">
+              {displayError(error as Error)}
+            </p>
+          </div>
+        )}
         <div className="flex flex-col gap-2">
           <button type="submit" className="mt-4">
-            Login
+            {isPending ? "Loading..." : "Login"}
           </button>
         </div>
       </form>
