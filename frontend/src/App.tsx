@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router";
 import "./App.css";
+import PrivateRoute from "./components/PrivateRoute";
 import { AuthProvider } from "./context/AuthProvider";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -15,7 +16,9 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route element={<PrivateRoute />}>
+                <Route path="/" element={<HomePage />} />
+              </Route>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
             </Routes>
