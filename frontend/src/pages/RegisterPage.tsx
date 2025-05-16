@@ -1,7 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { axiosInstance } from "../config/api";
+import { displayError } from "../utils/helpers";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -9,41 +10,31 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: ""
   });
+  const navigate = useNavigate();
 
-  const { mutateAsync: registerUser, isPending, error } = useMutation({
-    mutationFn: async () => {
-      await axiosInstance
-        .post("/auth/register", formData)
-        .then((response) => {
-          console.log(response);
-          alert("Registration successful");
-        })
-    }
-  });
+  const sendRegistrationRequest = async () => {
+    await axiosInstance.post("/auth/register", formData).then(() => {
+      navigate("/login")
+    });
+  };
+
+  const {
+    mutateAsync: registerUser,
+    isPending,
+    error
+  } = useMutation({ mutationFn: sendRegistrationRequest });
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (!formData.email || !formData.password || !formData.confirmPassword) {
       alert("Please fill in all fields");
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
-
     await registerUser();
-  };
-
-  const displayError = (error: Error) => {
-    if (error instanceof AxiosError) {
-      if (error.response?.data?.message) {
-        return error.response.data.message;
-      }
-    }
-    return error.message || "An unknown error occurred";
   };
 
   return (
@@ -87,15 +78,15 @@ export default function RegisterPage() {
               setFormData({ ...formData, confirmPassword: event.target.value })
             }
           />
-          <p className="text-sm text-gray-500">
-            Passwords must match
-          </p>
+          <p className="text-sm text-gray-500">Passwords must match</p>
         </div>
-        {error && <div className="flex flex-col gap-2">
-          <p className="text-sm text-red-500">
-            {displayError(error as Error)}
-          </p>
-        </div>}
+        {error && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-red-500">
+              {displayError(error as Error)}
+            </p>
+          </div>
+        )}
         <div className="flex flex-col gap-2">
           <button type="submit" className="mt-4">
             {isPending ? "Registering..." : "Register"}
