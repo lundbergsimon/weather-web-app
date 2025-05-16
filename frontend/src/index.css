@@ -24,3 +24,7 @@ button {
 button:hover {
   background-color: #5b4f9e;
 }
+
+h1 {
+  font-size: 1.7rem;
+}
