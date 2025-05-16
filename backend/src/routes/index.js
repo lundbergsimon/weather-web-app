@@ -79,8 +79,25 @@ router.post("/auth/refresh", (req, res) => {
   res.json({ message: "Refresh successful" });
 });
 
-router.get("/forecast", verifyToken, (req, res) => {
-  res.json({ message: "Forecast data" });
+router.get("/forecast", verifyToken, async (req, res) => {
+  const { lon, lat } = req.query;
+  if (!lon || !lat) {
+    return res
+      .status(400)
+      .json({ message: "Longitude and latitude are required" });
+  }
+
+  const response = await fetch(
+    `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
+  );
+  if (!response.ok) {
+    console.error(
+      `Failed to fetch forecast data: ${response.status} ${response.statusText}`
+    );
+    return res.status(500).json({ message: `Failed to fetch forecast data for lon=${lon}, lat=${lat}` });
+  }
+  const json = await response.json();
+  res.json({ message: "Forecast data", data: json });
 });
 
 export default router;
