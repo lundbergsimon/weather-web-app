@@ -84,10 +84,11 @@ router.post("/auth/logout", (req, res) => {
 });
 
 router.post("/auth/refresh", verifyRefreshToken, (req, res) => {
-  const user = req.user;
-  if (!user) {
+  const payload = req.payload;
+  if (!payload) {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
+  const { iat, exp, ...user } = payload;
   const newAccessToken = generateToken(user, "15m");
   res
     .status(200)

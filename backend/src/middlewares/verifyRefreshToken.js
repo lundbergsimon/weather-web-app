@@ -7,7 +7,7 @@ const verifyRefreshToken = (req, res, next) => {
   if (refreshToken) {
     try {
       const decodedToken = jwt.verify(refreshToken, process.env.JWT_SECRET);
-      req.user = decodedToken;
+      req.payload = decodedToken;
       console.log("Decoded token:", decodedToken);
       return next();
     } catch (err) {
