@@ -1,4 +1,5 @@
 import express from "express";
+import verifyRefreshToken from "../middlewares/verifyRefreshToken.js";
 import verifyToken from "../middlewares/verifyToken.js";
 import userService from "../services/user.service.js";
 import {
@@ -61,7 +62,14 @@ router.post("/auth/login", async (req, res) => {
     const refreshToken = generateToken(existingUser, "1d");
     const accessToken = generateToken(existingUser, "15m");
 
-    res.cookie("refresh_token", refreshToken, { httpOnly: true });
+    console.log("Access token:", accessToken);
+    console.log("Refresh token:", refreshToken);
+    res.cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
     res
       .status(200)
       .json({ message: "Login successful", access_token: accessToken });
@@ -75,8 +83,15 @@ router.post("/auth/logout", (req, res) => {
   res.json({ message: "Logout successful" });
 });
 
-router.post("/auth/refresh", (req, res) => {
-  res.json({ message: "Refresh successful" });
+router.post("/auth/refresh", verifyRefreshToken, (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ message: "Invalid refresh token" });
+  }
+  const newAccessToken = generateToken(user, "15m");
+  res
+    .status(200)
+    .json({ message: "Login successful", access_token: newAccessToken });
 });
 
 router.get("/forecast", verifyToken, async (req, res) => {
@@ -94,7 +109,9 @@ router.get("/forecast", verifyToken, async (req, res) => {
     console.error(
       `Failed to fetch forecast data: ${response.status} ${response.statusText}`
     );
-    return res.status(500).json({ message: `Failed to fetch forecast data for lon=${lon}, lat=${lat}` });
+    return res.status(500).json({
+      message: `Failed to fetch forecast data for lon=${lon}, lat=${lat}`
+    });
   }
   const json = await response.json();
   console.log(json);
@@ -103,7 +120,7 @@ router.get("/forecast", verifyToken, async (req, res) => {
     datetime: item.validTime,
     temperature: item.parameters.find((param) => param.name === "t"),
     windSpeed: item.parameters.find((param) => param.name === "ws"),
-    windDirection: item.parameters.find((param) => param.name === "wd"),
+    windDirection: item.parameters.find((param) => param.name === "wd")
   }));
   res.json({ message: "Forecast data", data: data });
 });
