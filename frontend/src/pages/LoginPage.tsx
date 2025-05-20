@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { axiosInstance } from "../config/api";
+import { axiosPublic } from "../config/api";
 import useAuth from "../hooks/useAuth";
 import { displayError } from "../utils/helpers";
 
@@ -23,7 +23,7 @@ export default function LoginPage() {
   };
 
   const sendLoginRequest = async () => {
-    await axiosInstance.post("/auth/login", formData).then((response) => {
+    await axiosPublic.post("/auth/login", formData).then((response) => {
       if (response.data.access_token) {
         setAuth({
           accessToken: response.data.access_token

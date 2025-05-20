@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { axiosInstance } from "../config/api";
+import { axiosPublic } from "../config/api";
 import { displayError } from "../utils/helpers";
 
 export default function RegisterPage() {
@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
 
   const sendRegistrationRequest = async () => {
-    await axiosInstance.post("/auth/register", formData).then(() => {
+    await axiosPublic.post("/auth/register", formData).then(() => {
       navigate("/login")
     });
   };
