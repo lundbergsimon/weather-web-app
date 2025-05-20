@@ -1,18 +1,19 @@
-import axios from "axios";
-// import { axiosInstance } from "../config/api";
+import { axiosPublic } from "../config/api";
 import useAuth from "./useAuth";
 
 const useRefreshAccessToken = () => {
   const { setAuth } = useAuth();
 
   const refreshAccessToken = async () => {
-    const response = await axios.post("/auth/refresh", {
+    const response = await axiosPublic.post("/auth/refresh", {
       withCredentials: true,
     });
 
     setAuth({
-      accessToken: response.data.accessToken,
+      accessToken: response.data["access_token"],
     });
+
+    console.log("New access token:", response.data["access_token"]);
 
     return response.data.accessToken;
   };
