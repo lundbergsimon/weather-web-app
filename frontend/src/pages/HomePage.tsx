@@ -39,7 +39,7 @@ export default function HomePage() {
       )}
       {forecast && (
         <div className="flex justify-center items-center">
-          <div className="inline-flex flex-col justify-center items-center gap-4">
+          <div className="inline-flex flex-col justify-center items-center gap-4 py-4">
             {Array.from(forecast.entries()).map(([key, value]) => (
               <>
                 <h1 className="text-2xl font-bold text-center">
