@@ -25,7 +25,6 @@ export default function HomePage() {
           forecastMap.set(date, [item]);
         }
       });
-      console.log(forecastMap);
       return forecastMap;
     }
   });
@@ -41,12 +40,12 @@ export default function HomePage() {
         <div className="flex justify-center items-center">
           <div className="inline-flex flex-col justify-center items-center gap-4 py-4">
             {Array.from(forecast.entries()).map(([key, value]) => (
-              <>
+              <div key={key}>
                 <h1 className="text-2xl font-bold text-center">
                   {new Date(value[0].datetime).toDateString()}
                 </h1>
-                <ForecastTable key={key} timeSeries={value} />
-              </>
+                <ForecastTable timeSeries={value} />
+              </div>
             ))}
           </div>
         </div>
