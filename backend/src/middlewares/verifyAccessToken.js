@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
-const verifyToken = (req, res, next) => {
+const verifyAccessToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.split(' ').length === 2) {
     const access_token = authHeader.split(' ')[1];
@@ -22,4 +22,4 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-export default verifyToken;
+export default verifyAccessToken;
