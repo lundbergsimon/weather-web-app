@@ -10,7 +10,7 @@ const ForecastTable: React.FC<ForecastTableProps> = ({ timeSeries }) => {
     <table className="border-separate border-spacing-2 border border-gray-400 dark:border-gray-500 w-full">
       <thead>
         <tr>
-          <th>Day</th>
+          <th>Time</th>
           <th>Temperature</th>
           <th>Wind Speed</th>
           <th>Wind Direction</th>
