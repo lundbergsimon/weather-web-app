@@ -1,4 +1,4 @@
-import pool from "../db/db";
+import pool from "../db/db.js";
 
 async function insertRefreshToken(userId, refreshToken) {
   try {
@@ -30,4 +30,23 @@ async function invalidateRefreshToken(userId) {
   }
 }
 
-export default { insertRefreshToken, invalidateRefreshToken };
+async function validateRefreshToken(userId, refreshToken) {
+  try {
+    const results = await pool.query(
+      "SELECT * FROM refresh_tokens WHERE user_id = $1 AND token = $2",
+      [userId, refreshToken]
+    );
+    if (results.rowCount === 0) {
+      throw new Error("Invalid refresh token");
+    }
+  } catch (error) {
+    console.error("Error validating refresh token:", error);
+    throw error;
+  }
+}
+
+export default {
+  insertRefreshToken,
+  invalidateRefreshToken,
+  validateRefreshToken
+};
