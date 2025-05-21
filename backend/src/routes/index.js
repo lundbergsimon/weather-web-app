@@ -1,6 +1,6 @@
 import express from "express";
+import verifyToken from "../middlewares/verifyAccessToken.js";
 import verifyRefreshToken from "../middlewares/verifyRefreshToken.js";
-import verifyToken from "../middlewares/verifyToken.js";
 import authService from "../services/auth.service.js";
 import userService from "../services/user.service.js";
 import {
