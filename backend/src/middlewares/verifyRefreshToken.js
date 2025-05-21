@@ -7,8 +7,9 @@ const verifyRefreshToken = (req, res, next) => {
   if (refreshToken) {
     try {
       const decodedToken = jwt.verify(refreshToken, process.env.JWT_SECRET);
-      req.payload = decodedToken;
-      console.log("Decoded token:", decodedToken);
+      const { iat, exp, ...user } = decodedToken;
+      authService.validateRefreshToken(user.id, refreshToken);
+      req.user = user;
       return next();
     } catch (err) {
       console.error("Error verifying refresh token:", err);
