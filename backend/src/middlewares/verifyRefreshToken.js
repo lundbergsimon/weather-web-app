@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import authService from "../services/auth.service.js";
 
 const verifyRefreshToken = (req, res, next) => {
   const refreshToken = req.cookies.refresh_token;
