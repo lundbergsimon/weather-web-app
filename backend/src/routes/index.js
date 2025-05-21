@@ -1,9 +1,11 @@
 import express from "express";
 import verifyRefreshToken from "../middlewares/verifyRefreshToken.js";
 import verifyToken from "../middlewares/verifyToken.js";
+import authService from "../services/auth.service.js";
 import userService from "../services/user.service.js";
 import {
-  generateToken,
+  generateAccessToken,
+  generateRefreshToken,
   hashPassword,
   unhashPassword
 } from "../utils/helpers.js";
@@ -59,8 +61,11 @@ router.post("/auth/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const refreshToken = generateToken(existingUser, "1d");
-    const accessToken = generateToken(existingUser, "15m");
+    const refreshToken = generateRefreshToken(existingUser);
+    const accessToken = generateAccessToken(existingUser);
+
+    // Store the refresh token in the database
+    await authService.insertRefreshToken(existingUser.id, refreshToken);
 
     console.log("Access token:", accessToken);
     console.log("Refresh token:", refreshToken);
@@ -84,18 +89,36 @@ router.post("/auth/logout", (req, res) => {
 });
 
 router.post("/auth/refresh", verifyRefreshToken, (req, res) => {
-  const payload = req.payload;
-  if (!payload) {
-    return res.status(401).json({ message: "Invalid refresh token" });
+  const user = req.user;
+  if (!user) {
+    return res.sendStatus(401);
   }
-  const { iat, exp, ...user } = payload;
-  const newAccessToken = generateToken(user, "15m");
-  res
-    .status(200)
-    .json({ message: "Login successful", access_token: newAccessToken });
+  // Generate new access and refresh tokens
+  const newAccessToken = generateAccessToken(user);
+  const newRefreshToken = generateRefreshToken(user);
+
+  // Invalidate the old refresh token in the database
+  authService.invalidateRefreshToken(user.id);
+
+  // Store the new refresh token in the database
+  authService.insertRefreshToken(user.id, newRefreshToken);
+
+  // Set the new refresh token in the cookie
+  res.cookie("refresh_token", newRefreshToken, {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  });
+
+  // Send the new access token to the client
+  res.status(200).json({
+    message: "Login successful",
+    access_token: newAccessToken
+  });
 });
 
-router.get("/forecast", verifyToken, async (req, res) => {
+router.get("/forecast", verifyAccessToken, async (req, res) => {
   const { lon, lat } = req.query;
   if (!lon || !lat) {
     return res
