@@ -4,8 +4,17 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-export const generateToken = (user, expiresIn) =>
-  jwt.sign(user, process.env.JWT_SECRET, { expiresIn });
+const ACCESS_TOKEN_EXPIRATION = "10s";
+const REFRESH_TOKEN_EXPIRATION = "20s";
+
+export const generateAccessToken = (user) =>
+  jwt.sign(user, process.env.JWT_SECRET, {
+    expiresIn: ACCESS_TOKEN_EXPIRATION
+  });
+export const generateRefreshToken = (user) =>
+  jwt.sign(user, process.env.JWT_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRATION
+  });
 
 export const hashPassword = (password) => password;
 
