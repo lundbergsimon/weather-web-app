@@ -1,6 +1,6 @@
 import express from "express";
+import jwt from "jsonwebtoken";
 import verifyAccessToken from "../middlewares/verifyAccessToken.js";
-import verifyRefreshToken from "../middlewares/verifyRefreshToken.js";
 import authService from "../services/auth.service.js";
 import userService from "../services/user.service.js";
 import {
@@ -9,6 +9,15 @@ import {
   hashPassword,
   unhashPassword
 } from "../utils/helpers.js";
+
+const ACCESS_TOKEN_EXPIRATION_MS = 1000 * 60 * 15;
+const REFRESH_TOKEN_EXPIRATION_MS = 1000 * 60 * 60 * 24;
+const REFRESH_TOKEN_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: "none",
+  secure: true,
+  maxAge: REFRESH_TOKEN_EXPIRATION_MS
+};
 
 const router = express.Router();
 
@@ -61,23 +70,23 @@ router.post("/auth/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const refreshToken = generateRefreshToken(existingUser);
-    const accessToken = generateAccessToken(existingUser);
+    const refreshToken = generateRefreshToken(
+      existingUser,
+      REFRESH_TOKEN_EXPIRATION_MS
+    );
+    const accessToken = generateAccessToken(
+      existingUser,
+      ACCESS_TOKEN_EXPIRATION_MS
+    );
 
     // Store the refresh token in the database
     await authService.insertRefreshToken(existingUser.id, refreshToken);
 
-    console.log("Access token:", accessToken);
-    console.log("Refresh token:", refreshToken);
-    res.cookie("refresh_token", refreshToken, {
-      httpOnly: true,
-      sameSite: "none",
-      secure: true,
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    res.cookie("refresh_token", refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.status(200).json({
+      message: "Login successful!",
+      access_token: accessToken
     });
-    res
-      .status(200)
-      .json({ message: "Login successful", access_token: accessToken });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -88,32 +97,54 @@ router.post("/auth/logout", (req, res) => {
   res.json({ message: "Logout successful" });
 });
 
-router.post("/auth/refresh", verifyRefreshToken, (req, res) => {
-  const user = req.user;
-  if (!user) {
-    return res.sendStatus(401);
+router.post("/auth/refresh", async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.refresh_token) return res.sendStatus(401);
+  const refreshToken = cookies.refresh_token;
+
+  // Clear the refresh token cookie in the user's browser
+  res.clearCookie("refresh_token", REFRESH_TOKEN_COOKIE_OPTIONS);
+
+  // Check for the refresh token in the database
+  const userId = await authService.validateRefreshToken(refreshToken);
+  if (!userId) {
+    return res.sendStatus(403);
   }
-  // Generate new access and refresh tokens
-  const newAccessToken = generateAccessToken(user);
-  const newRefreshToken = generateRefreshToken(user);
+
+  // Verify the refresh token
+  const { iat, exp, ...decodedUser } = jwt.verify(
+    refreshToken,
+    process.env.JWT_SECRET,
+    (err, decoded) => {
+      if (err) return res.sendStatus(403);
+      return decoded;
+    }
+  );
 
   // Invalidate the old refresh token in the database
-  authService.invalidateRefreshToken(user.id);
+  authService.invalidateRefreshToken(decodedUser.id);
+
+  // Generate new access and refresh tokens
+  const newAccessToken = generateAccessToken(
+    decodedUser,
+    ACCESS_TOKEN_EXPIRATION_MS
+  );
+  const newRefreshToken = generateRefreshToken(
+    decodedUser,
+    ACCESS_TOKEN_EXPIRATION_MS
+  );
 
   // Store the new refresh token in the database
-  authService.insertRefreshToken(user.id, newRefreshToken);
+  await authService.insertRefreshToken(decodedUser.id, newRefreshToken);
 
   // Set the new refresh token in the cookie
   res.cookie("refresh_token", newRefreshToken, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
+    ...REFRESH_TOKEN_COOKIE_OPTIONS,
+    expires: newRefreshToken.exp * 1000
   });
 
   // Send the new access token to the client
   res.status(200).json({
-    message: "Login successful",
     access_token: newAccessToken
   });
 });
@@ -138,7 +169,6 @@ router.get("/forecast", verifyAccessToken, async (req, res) => {
     });
   }
   const json = await response.json();
-  console.log(json);
 
   const data = json.timeSeries.map((item) => ({
     datetime: item.validTime,
