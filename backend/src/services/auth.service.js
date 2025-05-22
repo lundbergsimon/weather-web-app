@@ -17,28 +17,27 @@ async function insertRefreshToken(userId, refreshToken) {
 
 async function invalidateRefreshToken(userId) {
   try {
-    const results = await pool.query(
-      "DELETE FROM refresh_tokens WHERE user_id = $1 RETURNING *",
+    await pool.query(
+      "DELETE FROM refresh_tokens WHERE user_id = $1",
       [userId]
     );
-    if (results.rowCount === 0) {
-      throw new Error("Failed to invalidate refresh token");
-    }
   } catch (error) {
     console.error("Error invalidating refresh token:", error);
     throw error;
   }
 }
 
-async function validateRefreshToken(userId, refreshToken) {
+async function validateRefreshToken(refreshToken) {
   try {
     const results = await pool.query(
-      "SELECT * FROM refresh_tokens WHERE user_id = $1 AND token = $2",
-      [userId, refreshToken]
+      "SELECT * FROM refresh_tokens WHERE token = $1",
+      [refreshToken]
     );
     if (results.rowCount === 0) {
       throw new Error("Invalid refresh token");
     }
+
+    return results.rows[0].user_id;
   } catch (error) {
     console.error("Error validating refresh token:", error);
     throw error;
