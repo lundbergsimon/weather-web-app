@@ -10,10 +10,9 @@ const verifyAccessToken = (req, res, next) => {
     try {
       const decodedToken = jwt.verify(access_token, process.env.JWT_SECRET);
       req.user = decodedToken;
-      console.log('Decoded token:', decodedToken);
       return next();
     } catch (err) {
-      console.error('Error verifying token:', err);
+      console.error(err);
       return res.status(403).json({ message: 'Forbidden' });
     }
   } else {
