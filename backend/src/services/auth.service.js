@@ -33,9 +33,6 @@ async function validateRefreshToken(refreshToken) {
       "SELECT * FROM refresh_tokens WHERE token = $1",
       [refreshToken]
     );
-    if (results.rowCount === 0) {
-      throw new Error("Invalid refresh token");
-    }
 
     return results.rows[0].user_id;
   } catch (error) {
