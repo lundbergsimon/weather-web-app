@@ -9,6 +9,7 @@ async function insertRefreshToken(userId, refreshToken) {
     if (results.rowCount === 0) {
       throw new Error("Failed to insert refresh token");
     }
+    return results.rows[0];
   } catch (error) {
     console.error("Error inserting refresh token:", error);
     throw error;
@@ -33,6 +34,9 @@ async function validateRefreshToken(refreshToken) {
       "SELECT * FROM refresh_tokens WHERE token = $1",
       [refreshToken]
     );
+    if (results.rowCount === 0) {
+      return null;
+    }
 
     return results.rows[0].user_id;
   } catch (error) {
