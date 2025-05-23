@@ -7,12 +7,15 @@ import useRefreshAccessToken from "../hooks/useRefreshAccessToken";
 const PersistLogin: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { refreshAccessToken } = useRefreshAccessToken();
-  const { auth } = useAuth();
+  const { auth, setAuth } = useAuth();
 
   useEffect(() => {
     const verifyRefreshToken = async () => {
       try {
-        await refreshAccessToken();
+        const accessToken = await refreshAccessToken();
+        console.log("Access token refreshed:", accessToken);
+
+        setAuth({ accessToken });
       } catch (error) {
         console.error("Failed to refresh access token:", error);
       } finally {
