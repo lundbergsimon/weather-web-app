@@ -98,55 +98,60 @@ router.post("/auth/logout", (req, res) => {
 });
 
 router.post("/auth/refresh", async (req, res) => {
-  const cookies = req.cookies;
-  if (!cookies?.refresh_token) return res.sendStatus(401);
-  const refreshToken = cookies.refresh_token;
+  try {
+    const cookies = req.cookies;
+    if (!cookies?.refresh_token) return res.sendStatus(401);
+    const refreshToken = cookies.refresh_token;
 
-  // Clear the refresh token cookie in the user's browser
-  res.clearCookie("refresh_token", REFRESH_TOKEN_COOKIE_OPTIONS);
+    // Clear the refresh token cookie in the user's browser
+    res.clearCookie("refresh_token", REFRESH_TOKEN_COOKIE_OPTIONS);
 
-  // Check for the refresh token in the database
-  const userId = await authService.validateRefreshToken(refreshToken);
-  if (!userId) {
-    return res.sendStatus(403);
-  }
-
-  // Verify the refresh token
-  const { iat, exp, ...decodedUser } = jwt.verify(
-    refreshToken,
-    process.env.JWT_SECRET,
-    (err, decoded) => {
-      if (err) return res.sendStatus(403);
-      return decoded;
+    // Check for the refresh token in the database
+    const userId = await authService.validateRefreshToken(refreshToken);
+    if (!userId) {
+      return res.sendStatus(403);
     }
-  );
 
-  // Invalidate the old refresh token in the database
-  authService.invalidateRefreshToken(decodedUser.id);
+    // Verify the refresh token
+    const { iat, exp, ...decodedUser } = jwt.verify(
+      refreshToken,
+      process.env.JWT_SECRET,
+      (err, decoded) => {
+        if (err) return res.sendStatus(403);
+        return decoded;
+      }
+    );
 
-  // Generate new access and refresh tokens
-  const newAccessToken = generateAccessToken(
-    decodedUser,
-    ACCESS_TOKEN_EXPIRATION_MS
-  );
-  const newRefreshToken = generateRefreshToken(
-    decodedUser,
-    ACCESS_TOKEN_EXPIRATION_MS
-  );
+    // Invalidate the old refresh token in the database
+    await authService.invalidateRefreshToken(decodedUser.id);
 
-  // Store the new refresh token in the database
-  await authService.insertRefreshToken(decodedUser.id, newRefreshToken);
+    // Generate new access and refresh tokens
+    const newAccessToken = generateAccessToken(
+      decodedUser,
+      ACCESS_TOKEN_EXPIRATION_MS
+    );
+    const newRefreshToken = generateRefreshToken(
+      decodedUser,
+      ACCESS_TOKEN_EXPIRATION_MS
+    );
 
-  // Set the new refresh token in the cookie
-  res.cookie("refresh_token", newRefreshToken, {
-    ...REFRESH_TOKEN_COOKIE_OPTIONS,
-    expires: newRefreshToken.exp * 1000
-  });
+    // Store the new refresh token in the database
+    await authService.insertRefreshToken(decodedUser.id, newRefreshToken);
 
-  // Send the new access token to the client
-  res.status(200).json({
-    access_token: newAccessToken
-  });
+    // Set the new refresh token in the cookie
+    res.cookie("refresh_token", newRefreshToken, {
+      ...REFRESH_TOKEN_COOKIE_OPTIONS,
+      expires: newRefreshToken.exp * 1000
+    });
+
+    // Send the new access token to the client
+    res.status(200).json({
+      access_token: newAccessToken
+    });
+  } catch (error) {
+    console.error("Error during token refresh:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 router.get("/forecast", verifyAccessToken, async (req, res) => {
