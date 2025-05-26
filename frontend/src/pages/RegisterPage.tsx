@@ -92,6 +92,12 @@ export default function RegisterPage() {
             {isPending ? "Registering..." : "Register"}
           </button>
         </div>
+        <div>
+          <p>Already have an account?</p>
+          <a href="/login" className="text-blue-500 hover:underline">
+            Login here
+          </a>
+        </div>
       </form>
     </div>
   );
