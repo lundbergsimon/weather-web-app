@@ -21,23 +21,20 @@ const TopBar: React.FC = () => {
   return (
     <>
       <div className="w-full h-16 bg-[#15141c] text-white flex items-center justify-between px-4">
-        <div className="text-lg font-bold">Weather App by Simon Lundberg</div>
+        <div className="text-lg font-bold text-gray-200">
+          <span>Simple Weather App</span>
+          <span className="text-gray-400 font-normal"> by </span>
+          <span>Simon Lundberg</span>
+        </div>
         <div className="flex items-center">
-          {auth?.accessToken ? (
-            <>
-              <button type="button" onClick={logout} className="hover:text-gray-400">
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <a href="/login" className="hover:text-gray-400">
-                Login
-              </a>
-              <a href="/register" className="hover:text-gray-400">
-                Register
-              </a>
-            </>
+          {auth?.accessToken && (
+            <button
+              type="button"
+              onClick={logout}
+              className="hover:text-gray-400"
+            >
+              Logout
+            </button>
           )}
         </div>
       </div>
