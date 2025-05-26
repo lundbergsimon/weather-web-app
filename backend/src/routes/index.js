@@ -5,9 +5,7 @@ import authService from "../services/auth.service.js";
 import userService from "../services/user.service.js";
 import {
   generateAccessToken,
-  generateRefreshToken,
-  hashPassword,
-  unhashPassword
+  generateRefreshToken
 } from "../utils/helpers.js";
 
 const ACCESS_TOKEN_EXPIRATION_MS = 1000 * 60 * 15;
@@ -39,8 +37,8 @@ router.post("/auth/register", async (req, res) => {
         .json({ message: `User with email: '${email}' already exists` });
     }
 
-    const hashedPassword = hashPassword(password);
-    await userService.createUser({ email, hashedPassword });
+    // Store the user in the database
+    await userService.createUser({ email, password });
 
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
@@ -60,16 +58,14 @@ router.post("/auth/login", async (req, res) => {
 
     const { email, password } = body;
 
+    // Verify the user's credentials
     const existingUser = await userService.findUserByEmail(email);
-    if (!existingUser) {
+    const isPasswordValid = existingUser.password === password;
+    if (!existingUser || !isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const unhashedPassword = unhashPassword(password);
-    if (unhashedPassword !== password) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
+    // Generate access and refresh tokens
     const refreshToken = generateRefreshToken(
       existingUser,
       REFRESH_TOKEN_EXPIRATION_MS
@@ -84,12 +80,12 @@ router.post("/auth/login", async (req, res) => {
 
     res.cookie("refresh_token", refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
     res.status(200).json({
-      message: "Login successful!",
+      message: "Login successful",
       access_token: accessToken
     });
   } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    res.status(500).json({ message: "Internal server error while logging in" });
   }
 });
 
@@ -99,6 +95,7 @@ router.post("/auth/logout", verifyAccessToken, (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  // Clear the refresh token cookie in the user's browser
   res.clearCookie("refresh_token", REFRESH_TOKEN_COOKIE_OPTIONS);
 
   // Invalidate the refresh token in the database
@@ -165,33 +162,41 @@ router.post("/auth/refresh", async (req, res) => {
 });
 
 router.get("/forecast", verifyAccessToken, async (req, res) => {
-  const { lon, lat } = req.query;
-  if (!lon || !lat) {
-    return res
-      .status(400)
-      .json({ message: "Longitude and latitude are required" });
-  }
+  try {
+    const { lon, lat } = req.query;
+    if (!lon || !lat) {
+      return res.status(400).json({
+        message: "Missing required query parameters: lon and lat"
+      });
+    }
 
-  const response = await fetch(
-    `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
-  );
-  if (!response.ok) {
-    console.error(
-      `Failed to fetch forecast data: ${response.status} ${response.statusText}`
+    // Fetch forecast data from the SMHI API
+    const response = await fetch(
+      `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
     );
-    return res.status(500).json({
-      message: `Failed to fetch forecast data for lon=${lon}, lat=${lat}`
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch forecast data: ${response.status} ${response.statusText}`
+      );
+      return res.status(500).json({
+        message: `Failed to fetch forecast data for lon=${lon}, lat=${lat}`
+      });
+    }
+    const json = await response.json();
+
+    const data = json.timeSeries.map((item) => ({
+      datetime: item.validTime,
+      temperature: item.parameters.find((param) => param.name === "t"),
+      windSpeed: item.parameters.find((param) => param.name === "ws"),
+      windDirection: item.parameters.find((param) => param.name === "wd")
+    }));
+    res.status(200).json({ data: data });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal server error while fetching forecast data"
     });
   }
-  const json = await response.json();
-
-  const data = json.timeSeries.map((item) => ({
-    datetime: item.validTime,
-    temperature: item.parameters.find((param) => param.name === "t"),
-    windSpeed: item.parameters.find((param) => param.name === "ws"),
-    windDirection: item.parameters.find((param) => param.name === "wd")
-  }));
-  res.json({ message: "Forecast data", data: data });
 });
 
 export default router;
