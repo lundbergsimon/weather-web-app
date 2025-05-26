@@ -1,17 +1,41 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import ForecastTable from "../components/ForecastTable";
 import useApi from "../hooks/useApi";
 import { ForecastData } from "../types";
 
 export default function HomePage() {
   const axiosInstance = useApi();
+  const [coords, setCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCoords({ latitude, longitude });
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      }
+    );
+  }, [axiosInstance]);
 
   const { data: forecast, isLoading } = useQuery({
     queryKey: ["forecast"],
     queryFn: async () => {
-      const response = await axiosInstance.get(
-        "/forecast?lon=18.063240&lat=59.334591"
-      );
+      axiosInstance.defaults.params = {
+        lon: coords?.longitude.toFixed(6),
+        lat: coords?.latitude.toFixed(6),
+      };
+      const response = await axiosInstance.get("/forecast");
       if (response.status !== 200) {
         throw new Error("Error fetching forecast data");
       }
@@ -26,7 +50,9 @@ export default function HomePage() {
         }
       });
       return forecastMap;
-    }
+    },
+    enabled: !!coords,
+    refetchOnWindowFocus: false
   });
 
   return (
