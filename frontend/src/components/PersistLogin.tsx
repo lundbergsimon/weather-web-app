@@ -12,9 +12,15 @@ const PersistLogin: React.FC = () => {
   useEffect(() => {
     if (isMounted.current) return;
 
+
     const verifyRefreshToken = async () => {
-      await refreshAccessToken();
-      setIsLoading(false);
+      try {
+        await refreshAccessToken();
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error refreshing access token:", error);
+        setIsLoading(false);
+      }
     };
 
     if (!auth?.accessToken) {
