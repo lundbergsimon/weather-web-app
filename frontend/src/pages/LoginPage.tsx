@@ -81,6 +81,12 @@ export default function LoginPage() {
             {isPending ? "Loading..." : "Login"}
           </button>
         </div>
+        <div>
+          <p>Don't have an account?</p>
+          <a href="/register" className="text-blue-500 hover:underline">
+            Register here
+          </a>
+        </div>
       </form>
     </div>
   );
