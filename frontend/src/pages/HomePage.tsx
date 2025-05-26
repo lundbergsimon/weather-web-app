@@ -30,7 +30,7 @@ export default function HomePage() {
   });
 
   return (
-    <div className="w-screen">
+    <div className="">
       {isLoading && (
         <div className="flex justify-center items-center h-screen">
           <p>Loading...</p>
