@@ -93,7 +93,17 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-router.post("/auth/logout", (req, res) => {
+router.post("/auth/logout", verifyAccessToken, (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  res.clearCookie("refresh_token", REFRESH_TOKEN_COOKIE_OPTIONS);
+
+  // Invalidate the refresh token in the database
+  authService.invalidateRefreshToken(user.id);
+
   res.json({ message: "Logout successful" });
 });
 
