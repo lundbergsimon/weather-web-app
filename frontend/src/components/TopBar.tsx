@@ -4,11 +4,11 @@ import useAuth from "../hooks/useAuth";
 
 const TopBar: React.FC = () => {
   const { auth } = useAuth();
-  const api = useApi();
+  const { apiPrivate } = useApiPrivate();
   const navigate = useNavigate();
 
   const logout = async () => {
-    await api
+    await apiPrivate
       .post("/auth/logout")
       .catch((error) => {
         alert("Logout failed: " + error.message);
