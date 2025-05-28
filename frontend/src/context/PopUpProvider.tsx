@@ -1,4 +1,5 @@
 import { createContext, useState } from "react";
+import { createPortal } from "react-dom";
 import PopUp from "../components/PopUp";
 
 type PopUpContextType = {
@@ -46,7 +47,10 @@ export const PopUpProvider: React.FC<PopUpProviderProps> = ({ children }) => {
         displayPopUp
       }}
     >
-      <PopUp isOpen={isPopUpOpen} message={message} />
+      {createPortal(
+        <PopUp isOpen={isPopUpOpen} message={message} />,
+        document.getElementById("portal")!
+      )}
       {children}
     </PopUpContext.Provider>
   );
