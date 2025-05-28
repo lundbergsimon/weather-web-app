@@ -7,7 +7,7 @@ A full-stack weather forecast application built with **React**, **Vite**, **Type
 ## 🚀 Technologies Used
 
 ### Frontend
-- [React 19](https://react.dev/)
+- [React](https://react.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vitejs.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
