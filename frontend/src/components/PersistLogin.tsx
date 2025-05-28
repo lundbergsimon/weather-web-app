@@ -3,6 +3,10 @@ import { Outlet } from "react-router";
 import useAuth from "../hooks/useAuth";
 import useRefreshAccessToken from "../hooks/useRefreshAccessToken";
 
+/**
+ * This component is used to persist the user's login state, by refreshing the
+ * access token when the user refreshes the page.
+ */
 const PersistLogin: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { refreshAccessToken } = useRefreshAccessToken();
@@ -11,7 +15,6 @@ const PersistLogin: React.FC = () => {
 
   useEffect(() => {
     if (isMounted.current) return;
-
 
     const verifyRefreshToken = async () => {
       try {
@@ -24,13 +27,12 @@ const PersistLogin: React.FC = () => {
     };
 
     if (!auth?.accessToken) {
-      verifyRefreshToken()
+      verifyRefreshToken();
     } else {
       setIsLoading(false);
     }
 
     return () => {
-      console.log("PersistLogin: Cleaning up effect.");
       isMounted.current = true;
     };
   }, [auth, refreshAccessToken]);
