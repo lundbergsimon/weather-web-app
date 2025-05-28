@@ -3,7 +3,16 @@ import { axiosPrivate } from "../config/api";
 import useAuth from "./useAuth";
 import useRefreshAccessToken from "./useRefreshAccessToken";
 
-const useApi = () => {
+/**
+ * A hook that wraps `axiosPrivate` and adds two interceptors:
+ *   1. Adds the current access token to the Authorization header of each request.
+ *   2. If a request is rejected with a 403 status code, refreshes the access token and
+ *      retries the request with the new token.
+ *
+ * This hook is useful for making requests to protected API endpoints that require
+ * an access token.
+ */
+const useApiPrivate = () => {
   const { refreshAccessToken } = useRefreshAccessToken();
   const { auth } = useAuth();
 
@@ -38,7 +47,7 @@ const useApi = () => {
     };
   }, [auth, refreshAccessToken]);
 
-  return axiosPrivate;
+  return { apiPrivate: axiosPrivate };
 };
 
-export default useApi;
+export default useApiPrivate;
