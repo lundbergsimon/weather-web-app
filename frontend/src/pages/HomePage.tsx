@@ -15,6 +15,8 @@ import { ForecastData } from "../types";
  * for each day's data. The component handles loading and error states appropriately.
  */
 export default function HomePage() {
+  console.log("Rendering HomePage");
+
   const { apiPrivate } = useApiPrivate();
   const [coords, setCoords] = useState<{
     latitude: number;
@@ -24,7 +26,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      displayPopUp("Geolocation is not supported by this browser.");
+      displayPopUp("Geolocation is not supported by this browser.", "error");
       return;
     }
 
@@ -35,10 +37,10 @@ export default function HomePage() {
       },
       (error) => {
         console.error("Error getting geolocation:", error);
-        displayPopUp(error.message);
+        displayPopUp(error.message, "error");
       }
     );
-  }, [apiPrivate, displayPopUp]);
+  }, []);
 
   const { data: forecast, isLoading } = useQuery({
     queryKey: ["forecast"],
@@ -51,6 +53,7 @@ export default function HomePage() {
       if (response.status !== 200) {
         throw new Error("Error fetching forecast data");
       }
+      displayPopUp("Successfully fetched forecast data", "success");
       const forecastData = response.data.data as ForecastData[];
       const forecastMap = new Map<number, ForecastData[]>();
       forecastData.forEach((item) => {
