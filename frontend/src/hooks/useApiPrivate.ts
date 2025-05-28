@@ -1,14 +1,23 @@
 import { useEffect } from "react";
-import { axiosInstance } from "../config/api";
+import { axiosPrivate } from "../config/api";
 import useAuth from "./useAuth";
 import useRefreshAccessToken from "./useRefreshAccessToken";
 
-const useApi = () => {
+/**
+ * A hook that wraps `axiosPrivate` and adds two interceptors:
+ *   1. Adds the current access token to the Authorization header of each request.
+ *   2. If a request is rejected with a 403 status code, refreshes the access token and
+ *      retries the request with the new token.
+ *
+ * This hook is useful for making requests to protected API endpoints that require
+ * an access token.
+ */
+const useApiPrivate = () => {
   const { refreshAccessToken } = useRefreshAccessToken();
   const { auth } = useAuth();
 
   useEffect(() => {
-    const requestIntercept = axiosInstance.interceptors.request.use(
+    const requestIntercept = axiosPrivate.interceptors.request.use(
       (config) => {
         if (!config.headers["Authorization"]) {
           config.headers["Authorization"] = `Bearer ${auth?.accessToken}`;
@@ -18,7 +27,7 @@ const useApi = () => {
       (error) => Promise.reject(error)
     );
 
-    const responseIntercept = axiosInstance.interceptors.response.use(
+    const responseIntercept = axiosPrivate.interceptors.response.use(
       (response) => response,
       async (error) => {
         const prevRequest = error?.config;
@@ -26,19 +35,19 @@ const useApi = () => {
           prevRequest.sent = true;
           const newAccessToken = await refreshAccessToken();
           prevRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return axiosInstance(prevRequest);
+          return axiosPrivate(prevRequest);
         }
         return Promise.reject(error);
       }
     );
 
     return () => {
-      axiosInstance.interceptors.request.eject(requestIntercept);
-      axiosInstance.interceptors.response.eject(responseIntercept);
+      axiosPrivate.interceptors.request.eject(requestIntercept);
+      axiosPrivate.interceptors.response.eject(responseIntercept);
     };
   }, [auth, refreshAccessToken]);
 
-  return axiosInstance;
+  return { apiPrivate: axiosPrivate };
 };
 
-export default useApi;
+export default useApiPrivate;
