@@ -60,7 +60,7 @@ router.post("/auth/login", async (req, res) => {
 
     // Verify the user's credentials
     const existingUser = await userService.findUserByEmail(email);
-    const isPasswordValid = existingUser.password === password;
+    const isPasswordValid = existingUser?.password === password;
     if (!existingUser || !isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
