@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router";
 import useAuth from "../hooks/useAuth";
+import usePopUp from "../hooks/usePopUp";
 import useRefreshAccessToken from "../hooks/useRefreshAccessToken";
 
 /**
@@ -12,6 +13,7 @@ const PersistLogin: React.FC = () => {
   const { refreshAccessToken } = useRefreshAccessToken();
   const { auth } = useAuth();
   const isMounted = useRef(false);
+  const { displayPopUp } = usePopUp();
 
   useEffect(() => {
     if (isMounted.current) return;
@@ -22,6 +24,7 @@ const PersistLogin: React.FC = () => {
         setIsLoading(false);
       } catch (error) {
         console.error("Error refreshing access token:", error);
+        displayPopUp("Error refreshing access token");
         setIsLoading(false);
       }
     };
