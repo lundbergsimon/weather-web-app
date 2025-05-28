@@ -34,6 +34,7 @@ export default function HomePage() {
         setCoords({ latitude, longitude });
       },
       (error) => {
+        console.error(error);
         if (error.code === error.PERMISSION_DENIED) {
           displayPopUp("User denied the request for Geolocation.", "error");
         } else if (error.code === error.POSITION_UNAVAILABLE) {
