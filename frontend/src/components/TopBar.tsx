@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from "react-router";
 import useApiPrivate from "../hooks/useApiPrivate";
 import useAuth from "../hooks/useAuth";
+import usePopUp from "../hooks/usePopUp";
 
 /**
  * A top bar component that renders a navigation bar with a logout
@@ -12,15 +13,17 @@ const TopBar: React.FC = () => {
   const { auth } = useAuth();
   const { apiPrivate } = useApiPrivate();
   const navigate = useNavigate();
+  const { displayPopUp } = usePopUp();
 
   const logout = async () => {
     await apiPrivate
       .post("/auth/logout")
-      .catch((error) => {
-        alert("Logout failed: " + error.message);
+      .catch(() => {
+        displayPopUp("Logged out failed!", "error");
       })
       .finally(() => {
         navigate("/login", { replace: true });
+        displayPopUp("Logged out successfully", "success");
       });
   };
 
