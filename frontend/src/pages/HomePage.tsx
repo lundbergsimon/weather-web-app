@@ -15,8 +15,6 @@ import { ForecastData } from "../types";
  * for each day's data. The component handles loading and error states appropriately.
  */
 export default function HomePage() {
-  console.log("Rendering HomePage");
-
   const { apiPrivate } = useApiPrivate();
   const [coords, setCoords] = useState<{
     latitude: number;
