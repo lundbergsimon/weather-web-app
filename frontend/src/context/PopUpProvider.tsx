@@ -34,7 +34,9 @@ export const PopUpProvider: React.FC<PopUpProviderProps> = ({ children }) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const displayPopUp = (newMessage: string, type?: "success" | "error") => {
-    setMessage(newMessage);
+    if (newMessage) {
+      setMessage(newMessage);
+    }
     setType(type);
     setIsPopUpOpen(true);
 
