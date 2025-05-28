@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import ForecastTable from "../components/ForecastTable";
-import useApi from "../hooks/useApi";
+import useApiPrivate from "../hooks/useApiPrivate";
 import { ForecastData } from "../types";
 
 export default function HomePage() {
-  const axiosInstance = useApi();
+  const { apiPrivate } = useApiPrivate();
   const [coords, setCoords] = useState<{
     latitude: number;
     longitude: number;
@@ -26,16 +26,16 @@ export default function HomePage() {
         console.error("Error getting location:", error);
       }
     );
-  }, [axiosInstance]);
+  }, [apiPrivate]);
 
   const { data: forecast, isLoading } = useQuery({
     queryKey: ["forecast"],
     queryFn: async () => {
-      axiosInstance.defaults.params = {
+      apiPrivate.defaults.params = {
         lon: coords?.longitude.toFixed(6),
-        lat: coords?.latitude.toFixed(6),
+        lat: coords?.latitude.toFixed(6)
       };
-      const response = await axiosInstance.get("/forecast");
+      const response = await apiPrivate.get("/forecast");
       if (response.status !== 200) {
         throw new Error("Error fetching forecast data");
       }
