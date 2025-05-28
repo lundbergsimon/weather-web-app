@@ -2,18 +2,29 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import ForecastTable from "../components/ForecastTable";
 import useApiPrivate from "../hooks/useApiPrivate";
+import usePopUp from "../hooks/usePopUp";
 import { ForecastData } from "../types";
 
+/**
+ * The HomePage component fetches and displays weather forecast data based on the user's
+ * current geolocation. It uses the `useApiPrivate` hook to make authenticated API requests
+ * to retrieve forecast data. The component checks if geolocation is supported by the browser
+ * and displays a pop-up message if it's not supported. It stores the user's coordinates in
+ * state and triggers the fetching of forecast data using the `useQuery` hook once the coordinates
+ * are available. The forecast data is grouped by date and rendered in a `ForecastTable` component
+ * for each day's data. The component handles loading and error states appropriately.
+ */
 export default function HomePage() {
   const { apiPrivate } = useApiPrivate();
   const [coords, setCoords] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
+  const { displayPopUp } = usePopUp();
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser.");
+      displayPopUp("Geolocation is not supported by this browser.");
       return;
     }
 
@@ -23,10 +34,11 @@ export default function HomePage() {
         setCoords({ latitude, longitude });
       },
       (error) => {
-        console.error("Error getting location:", error);
+        console.error("Error getting geolocation:", error);
+        displayPopUp(error.message);
       }
     );
-  }, [apiPrivate]);
+  }, [apiPrivate, displayPopUp]);
 
   const { data: forecast, isLoading } = useQuery({
     queryKey: ["forecast"],
