@@ -30,14 +30,14 @@ const findUserByEmail = async (email) => {
  * @throws Will throw an error if the database query fails.
  */
 const createUser = async (user) => {
-  if (!user || !user.email || !user.hashedPassword) {
+  if (!user || !user.email || !user.password) {
     throw new Error("User object is invalid");
   }
 
   try {
     const results = await pool.query(
-      "INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING *",
-      [user.email, user.hashedPassword]
+      "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *",
+      [user.email, user.password]
     );
     return results.rows[0];
   } catch (error) {
