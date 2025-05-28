@@ -1,7 +1,13 @@
 import { Outlet, useNavigate } from "react-router";
-import useApi from "../hooks/useApi";
+import useApiPrivate from "../hooks/useApiPrivate";
 import useAuth from "../hooks/useAuth";
 
+/**
+ * A top bar component that renders a navigation bar with a logout
+ * button when the user is logged in. The component also renders the
+ * `Outlet` component from React Router, which renders the current route's
+ * component.
+ */
 const TopBar: React.FC = () => {
   const { auth } = useAuth();
   const { apiPrivate } = useApiPrivate();
