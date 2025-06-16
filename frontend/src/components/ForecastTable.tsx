@@ -12,7 +12,7 @@ interface ForecastTableProps {
  */
 const ForecastTable: React.FC<ForecastTableProps> = ({ timeSeries }) => {
   return (
-    <table className="border-separate border-spacing-2 border border-gray-400 dark:border-gray-500 w-full">
+    <table className="p-2 border-separate border-spacing-2 border border-zinc-800 w-full bg-gradient-to-b from-secondary to-primary shadow-neutral-900 shadow-lg rounded-2xl">
       <thead>
         <tr>
           <th>Time</th>
