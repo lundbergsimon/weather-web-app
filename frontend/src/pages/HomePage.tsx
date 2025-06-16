@@ -88,7 +88,7 @@ export default function HomePage() {
           <div className="inline-flex flex-col justify-center items-center gap-4 py-4">
             {Array.from(forecast.entries()).map(([key, value]) => (
               <div key={key}>
-                <h1 className="text-2xl font-bold text-center">
+                <h1 className="text-2xl font-bold text-center my-2">
                   {new Date(value[0].datetime).toDateString()}
                 </h1>
                 <ForecastTable timeSeries={value} />
