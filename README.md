@@ -129,7 +129,3 @@ MIT
 ## 👤 Author
 
 Simon Lundberg
-
----
-
-> _Feel free to open issues or submit pull requests!_
